@@ -3,6 +3,8 @@
 " TODO: Restrict to just fcl files.
 " TODO: Work out sensible default binds.
 
+let g:vim_fhicl#search_current = get(g:, 'vim_fhicl#search_current', v:false)
+
 let s:fhicl_include = '#include \?"\([A-Za-z/.]\+\)"'
 
 function! Find_FHICL_File() abort
@@ -38,15 +40,22 @@ function! Find_FHICL_File() abort
 
     for path in l:search_paths
         " Search for the file
-        " TODO: Add config option for the command here, so rg can be used
-        " instead.
         " TODO: Add result to list
-        " TODO: Check if certain dirs should be skipped.
-        "   Non-existing
-        "   Current dir (with config option)
         " TODO: Add config option for search settings:
         "   Stop after 1.
         "   Do all. (Default)
+
+        " If the folder doesn't exist, don't bother searching there.
+        if !isdirectory(path)
+            continue
+        endif
+
+        " Skip checking the current working dir if the config option is set.
+        " This is to match the functionality of find_fhicl.sh by default.
+        if path == "." && g:vim_fhicl#search_current == v:false
+            continue
+        endif
+
         echo "find " . l:fhicl_file . "-name " . path
         " let l:result = systemlist("find " . l:fhicl_file . "-name " . path)
     endfor
