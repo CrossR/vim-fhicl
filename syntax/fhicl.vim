@@ -14,7 +14,10 @@ runtime! syntax/c.vim
 unlet b:current_syntax
 
 " FHICL Identifiers
-syntax match fhiclProperty "\v\w+(:|\.)"
+syntax match fhiclProperty "[a-zA-Z0-9_]\+\( \)*\(:\|\.\)"
+
+" Fix Numbers
+syntax match fhiclNumbers "[0-9]"
 
 " FHICL Comments
 syntax match fhiclComment "#\(include\)\@!.*"
@@ -28,6 +31,7 @@ syntax keyword fhiclKeyword BEGIN_PROLOG END_PROLOG
 
 highlight link fhiclProperty Typedef
 highlight link fhiclKeyword Structure
-highlight def link fhiclComment Comment
+highlight link fhiclComment Comment
+highlight link fhiclNumbers Float
 
 let b:current_syntax = 'fhicl'
