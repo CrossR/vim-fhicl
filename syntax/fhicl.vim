@@ -13,16 +13,20 @@ endif
 runtime! syntax/c.vim
 unlet b:current_syntax
 
+" FHICL Identifiers
+syntax match fhiclProperty "\v\w+(:|\.)"
+
 " FHICL Comments
 syntax match fhiclComment "#\(include\)\@!.*"
 
 " FHICL Keywords
 syntax match fhiclKeyword "@local::"
 syntax match fhiclKeyword "@table::"
-syntax keyword fhiclKeyword process_name services source outputs physics
+syntax keyword fhiclKeyword process_name services source outputs physics output
 syntax keyword fhiclKeyword producers analyzers filters trigger_paths end_paths
 syntax keyword fhiclKeyword BEGIN_PROLOG END_PROLOG
 
+highlight link fhiclProperty Typedef
 highlight link fhiclKeyword Structure
 highlight def link fhiclComment Comment
 
