@@ -85,10 +85,14 @@ endfunction
 " Function to move back to the previous FHICL file.
 function! fhicl#base#Swap_To_Previous() abort
 
+    if !exists(b:vim_fhicl_prev_link)
+        return
+    endif
+
     if empty(b:vim_fhicl_prev_link)
         return
-    else
-        execute "edit " . b:vim_fhicl_prev_link.path
     endif
+
+    execute "edit " . b:vim_fhicl_prev_link.path
 
 endfunction
