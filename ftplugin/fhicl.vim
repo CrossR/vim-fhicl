@@ -3,9 +3,9 @@
 " TODO: Restrict to just fcl files.
 " TODO: Work out sensible default binds.
 
-let g:vim_fhicl#search_current = get(g:, 'vim_fhicl#search_current', v:false)
+let g:vim_fhicl#search_current = get(g:, 'vim_fhicl#search_current', 0)
 let g:vim_fhicl#search_setting = get(g:, 'vim_fhicl#search_setting', "all")
-let g:vim_fhicl#always_open_first = get(g:, 'vim_fhicl#always_open_first', v:false)
+let g:vim_fhicl#always_open_first = get(g:, 'vim_fhicl#always_open_first', 0)
 
 let s:fhicl_include = '#include \?"\([a-zA-Z0-9/._]\+\)"'
 
@@ -51,7 +51,7 @@ function! Find_FHICL_File() abort
 
         " Skip checking the current working dir if the config option is set.
         " This is to match the functionality of find_fhicl.sh by default.
-        if path == "." && g:vim_fhicl#search_current == v:false
+        if path == "." && g:vim_fhicl#search_current == 0
             continue
         endif
 
