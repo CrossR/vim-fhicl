@@ -11,7 +11,7 @@ function! fhicl#base#Find_FHICL_File() abort
 
     " If the env var isn't set, stop.
     if empty($FHICL_FILE_PATH)
-        echoerr "$FHICL_FILE_PATH isn't set!"
+        call EchoWarning("$FHICL_FILE_PATH isn't set!")
         return
     endif
 
@@ -20,7 +20,7 @@ function! fhicl#base#Find_FHICL_File() abort
 
     " If we aren't on an include line, stop.
     if l:current_line !~# s:fhicl_include
-        echoerr "Not on an include line!"
+        call EchoWarning("Not on an include line!")
         return
     endif
 
@@ -28,7 +28,7 @@ function! fhicl#base#Find_FHICL_File() abort
 
     " If there is no second group, (ie the FHICL file path), stop.
     if len(l:match_list) < 2
-        echoerr "No path found!"
+        call EchoWarning("No path found!")
         return
     endif
 
@@ -39,7 +39,7 @@ function! fhicl#base#Find_FHICL_File() abort
     " If a local sources folder exists, use that.
     " Add to the front since to favour a local, editable copy.
     if exists($MRB_SOURCE)
-        l:search_paths = [$MRB_SOURCE] + l:search_paths
+        let l:search_paths = [$MRB_SOURCE] + l:search_paths
     endif
 
     let l:found_fhicl = []
@@ -92,7 +92,7 @@ endfunction
 function! fhicl#base#Swap_To_Previous() abort
 
     " If there is no variable set, can't move back.
-    if !exists(b:vim_fhicl_prev_link)
+    if !exists('b:vim_fhicl_prev_link')
         return
     endif
 
@@ -104,4 +104,14 @@ function! fhicl#base#Swap_To_Previous() abort
     " Otherwise, swap to the listed file.
     execute "edit " . b:vim_fhicl_prev_link.path
 
+endfunction
+
+" Helper function to echo a warning
+" Using echoerr is too much for not an error.
+" Using just echo isn't that visible.
+function! EchoWarning(msg)
+    echohl WarningMsg
+    echo "Warning"
+    echohl None
+    echon ': ' a:msg
 endfunction
