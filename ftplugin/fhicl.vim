@@ -9,6 +9,7 @@ let g:vim_fhicl#always_open_first = get(g:, 'vim_fhicl#always_open_first', v:fal
 
 let s:fhicl_include = '#include \?"\([a-zA-Z0-9/._]\+\)"'
 
+" Function to find and follow a FHICL include.
 function! Find_FHICL_File() abort
 
     " If the env var isn't set, stop.
@@ -70,17 +71,28 @@ function! Find_FHICL_File() abort
     " Deal with the results to open file.
     " TODO: Open behaviour, ie readonly buffer etc.
     if len(l:found_fhicl) == 1
-        edit l:found_fhicl[0]
+        execute "edit " . l:found_fhicl[0]
     elseif len(l:found_fhicl) > 1
 
         " TODO: Populate QF here.
 
         if g:vim_fhicl#always_open_first
-            edit l:found_fhicl[0]
+            execute "edit " . l:found_fhicl[0]
         endif
     endif
 
     let b:vim_fhicl_prev_link = {}
     let b:vim_fhicl_prev_link.path = expand('%')
+
+endfunction
+
+" Function to move back to the previous FHICL file.
+function! Swap_To_Previous() abort
+
+    if empty(b:vim_fhicl_prev_link)
+        return
+    else
+        execute "edit " . b:vim_fhicl_prev_link.path
+    endif
 
 endfunction
