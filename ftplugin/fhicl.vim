@@ -19,6 +19,7 @@ function! Find_FHICL_File() abort
     endif
 
     let l:current_line = getline(".")
+    let l:current_file = expand('%')
 
     " If we aren't on an include line, stop.
     if l:current_line !~# s:fhicl_include
@@ -80,7 +81,7 @@ function! Find_FHICL_File() abort
     endif
 
     let b:vim_fhicl_prev_link = {}
-    let b:vim_fhicl_prev_link.path = expand('%')
+    let b:vim_fhicl_prev_link.path = l:current_file
 
 endfunction
 
