@@ -7,7 +7,7 @@ let g:vim_fhicl#search_current = get(g:, 'vim_fhicl#search_current', v:false)
 let g:vim_fhicl#search_setting = get(g:, 'vim_fhicl#search_setting', "all")
 let g:vim_fhicl#always_open_first = get(g:, 'vim_fhicl#always_open_first', v:false)
 
-let s:fhicl_include = '#include \?"\([A-Za-z/.]\+\)"'
+let s:fhicl_include = '#include \?"\([a-zA-Z0-9/._]\+\)"'
 
 function! Find_FHICL_File() abort
 
