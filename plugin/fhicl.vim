@@ -4,6 +4,8 @@
 " TODO: Work out sensible default binds.
 
 let g:vim_fhicl#search_current = get(g:, 'vim_fhicl#search_current', v:false)
+let g:vim_fhicl#search_setting = get(g:, 'vim_fhicl#search_setting', "all")
+let g:vim_fhicl#always_open_first = get(g:, 'vim_fhicl#always_open_first', v:false)
 
 let s:fhicl_include = '#include \?"\([A-Za-z/.]\+\)"'
 
@@ -18,7 +20,7 @@ function! Find_FHICL_File() abort
     let l:current_line = getline(".")
 
     " If we aren't on an include line, stop.
-    if l:current_line !~# s:current_line
+    if l:current_line !~# s:fhicl_include
         echoerr "Not on an include line!"
         return
     endif
@@ -26,7 +28,7 @@ function! Find_FHICL_File() abort
     let l:match_list = matchlist(l:current_line, s:fhicl_include)
 
     " If there is no second group, (ie the FHICL file path), stop.
-    if l:match_list < 2
+    if len(l:match_list) < 2
         echoerr "No path found!"
         return
     endif
@@ -36,14 +38,10 @@ function! Find_FHICL_File() abort
     let l:fhicl_file = split(l:match_list[1], "/")[-1]
     let l:search_paths = split($FHICL_FILE_PATH, ";")
 
-    let l:results = []
+    let l:found_fhicl = []
 
     for path in l:search_paths
         " Search for the file
-        " TODO: Add result to list
-        " TODO: Add config option for search settings:
-        "   Stop after 1.
-        "   Do all. (Default)
 
         " If the folder doesn't exist, don't bother searching there.
         if !isdirectory(path)
@@ -56,16 +54,31 @@ function! Find_FHICL_File() abort
             continue
         endif
 
-        echo "find " . l:fhicl_file . "-name " . path
-        " let l:result = systemlist("find " . l:fhicl_file . "-name " . path)
+        echo "find " . l:fhicl_file . " -name " . path
+        let l:result = []
+        " let l:result = systemlist("find " . l:fhicl_file . " -name " . path)
+
+        if len(l:result) > 0
+            let l:found_fhicl = l:found_fhicl + l:result
+
+            if g:vim_fhicl#search_setting == "first"
+                break
+            endif
+        endif
     endfor
 
     " Deal with the results to open file.
-    " TODO: Open the results.
-    " TODO: Config options for behaviour:
-    "   If one, swap to it.
-    "   If many, send to QF (and config option to open first result)
     " TODO: Open behaviour, ie readonly buffer etc.
+    if len(l:found_fhicl) == 1
+        edit l:found_fhicl[0]
+    elseif len(l:found_fhicl) > 1
+
+        " TODO: Populate QF here.
+
+        if g:vim_fhicl#always_open_first
+            edit l:found_fhicl[0]
+        endif
+    endif
 
     " TODO: Store current file in a global var, to move back through them.
 
