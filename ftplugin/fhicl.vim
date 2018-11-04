@@ -55,9 +55,7 @@ function! Find_FHICL_File() abort
             continue
         endif
 
-        echo "find " . l:fhicl_file . " -name " . path
-        let l:result = []
-        " let l:result = systemlist("find " . l:fhicl_file . " -name " . path)
+        let l:result = systemlist("find " . l:fhicl_file . " -name " . path)
 
         if len(l:result) > 0
             let l:found_fhicl = l:found_fhicl + l:result
