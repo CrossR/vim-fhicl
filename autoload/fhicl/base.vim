@@ -81,7 +81,11 @@ function! fhicl#base#Find_FHICL_File() abort
 
         call setloclist(0, map(l:found_fhicl, '{"filename: v:val"}'))
         exec lopen
+    elseif len(l:found_fhicl) == 0
+        call EchoWarning("No matches found...")
+        return
     endif
+
 
     let b:vim_fhicl_prev_link = {}
     let b:vim_fhicl_prev_link.path = l:current_file
