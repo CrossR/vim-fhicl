@@ -8,7 +8,6 @@ Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in
      * Multiple results are sent to the Location List.
 
 TODO:
- * Does the `srcs` folder need adding to the list of search paths
  * Look into properties to set for the opened buffer.
     * That is, set it to read only etc.
  * Make binds changeable.

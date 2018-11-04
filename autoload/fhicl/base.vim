@@ -33,9 +33,14 @@ function! fhicl#base#Find_FHICL_File() abort
     endif
 
     " Get the file to look for, and setup the search paths.
-    " TODO: Check if we should manually add the srcs folder.
     let l:fhicl_file = split(l:match_list[1], "/")[-1]
     let l:search_paths = split($FHICL_FILE_PATH, ":")
+
+    " If a local sources folder exists, use that.
+    " Add to the front since to favour a local, editable copy.
+    if exists($MRB_SOURCE)
+        l:search_paths = [$MRB_SOURCE] + l:search_paths
+    endif
 
     let l:found_fhicl = []
 
@@ -86,14 +91,17 @@ endfunction
 " Function to move back to the previous FHICL file.
 function! fhicl#base#Swap_To_Previous() abort
 
+    " If there is no variable set, can't move back.
     if !exists(b:vim_fhicl_prev_link)
         return
     endif
 
+    " If the variable is empty, can't move back.
     if empty(b:vim_fhicl_prev_link)
         return
     endif
 
+    " Otherwise, swap to the listed file.
     execute "edit " . b:vim_fhicl_prev_link.path
 
 endfunction
