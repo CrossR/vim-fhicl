@@ -37,7 +37,7 @@ function! Find_FHICL_File() abort
     " Get the file to look for, and setup the search paths.
     " TODO: Check if we should manually add the srcs folder.
     let l:fhicl_file = split(l:match_list[1], "/")[-1]
-    let l:search_paths = split($FHICL_FILE_PATH, ";")
+    let l:search_paths = split($FHICL_FILE_PATH, ":")
 
     let l:found_fhicl = []
 
