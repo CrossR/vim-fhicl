@@ -5,9 +5,9 @@ Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in
  * Add basic syntax highlighting to `.fcl` files.
  * Helper for moving around included `fcl` files.
      * Defaults to `Enter` to follow an include, and `Backspace` to return to the previous file.
+     * Multiple results are sent to the Location List.
 
 TODO:
- * If multiple results are found, fill the QuickFix window.
  * Does the `srcs` folder need adding to the list of search paths
  * Look into properties to set for the opened buffer.
     * That is, set it to read only etc.
@@ -35,7 +35,7 @@ let g:vim_fhicl#search_setting = "all"
 
 " Controls if the first file should be opened.
 " If multiple results are found, the results are
-" sent to the QuickFix menu. If this option is set,
+" sent to the location list. If this option is set,
 " the first file will be opened, as well.
 " Defaults to 0, set to 1 to open it every time.
 let g:vim_fhicl#search_current = 0

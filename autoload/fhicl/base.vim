@@ -70,11 +70,12 @@ function! fhicl#base#Find_FHICL_File() abort
         execute "edit " . l:found_fhicl[0]
     elseif len(l:found_fhicl) > 1
 
-        " TODO: Populate QF here.
-
         if g:vim_fhicl#always_open_first
             execute "edit " . l:found_fhicl[0]
         endif
+
+        call setloclist(0, map(l:found_fhicl, '{"filename: v:val"}'))
+        exec lopen
     endif
 
     let b:vim_fhicl_prev_link = {}
