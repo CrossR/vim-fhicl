@@ -80,6 +80,7 @@ function! Find_FHICL_File() abort
         endif
     endif
 
-    " TODO: Store current file in a global var, to move back through them.
+    let b:vim_fhicl_prev_link = {}
+    let b:vim_fhicl_prev_link.path = expand('%')
 
 endfunction
