@@ -55,7 +55,7 @@ function! Find_FHICL_File() abort
             continue
         endif
 
-        let l:result = systemlist("find " . l:fhicl_file . " -name " . path)
+        let l:result = systemlist("find " . path . " -name " . l:fhicl_file)
 
         if len(l:result) > 0
             let l:found_fhicl = l:found_fhicl + l:result
