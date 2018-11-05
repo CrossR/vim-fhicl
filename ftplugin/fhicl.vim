@@ -1,7 +1,7 @@
 " FHICL Default Bindings
 
 if !hasmapto('<Plug>vim-fhiclFindFhiclFile')
-    nmap <silent><buffer> <CR> <Plug>vim-fhiclFindFhiclFile
+    nmap <silent><buffer> <leader>f <Plug>vim-fhiclFindFhiclFile
 endif
 nnoremap <silent><buffer> <Plug>vim-fhiclFindFhiclFile :
             \<C-U>call fhicl#base#Find_FHICL_File()<CR>
