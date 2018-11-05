@@ -5,11 +5,7 @@ Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in
  * Add basic syntax highlighting to `.fcl` files.
  * Helper for moving around included `fcl` files.
      * Defaults to `<Leader>-f` to follow an include, and `Backspace` to return to the previous file.
-     * Multiple results are sent to the Location List.
-
-TODO:
- * Look into properties to set for the opened buffer.
-    * That is, set it to read only etc.
+     * Multiple results are sent to the Location List, where they can be selected with `Enter` to open them.
 
 ### Installation
 
@@ -34,9 +30,17 @@ let g:vim_fhicl#search_setting = "all"
 " Controls if the first file should be opened.
 " If multiple results are found, the results are
 " sent to the location list. If this option is set,
-" the first file will be opened, as well.
+" the first file will be opened as well.
 " Defaults to 0, set to 1 to open it every time.
-let g:vim_fhicl#search_current = 0
+let g:vim_fhicl#always_open_first = 0
+
+" Controls if the given file should be opened.
+" If set to 1, when invoking the plugin on an include line,
+" the results will always be sent to the location list, and
+" never opened.
+" Defaults to 0, set to 1 to never open a file and only populate
+" the location list.
+let g:vim_fhicl#dont_open_file = 0
 ```
 
 ### Custom Binds
