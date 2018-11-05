@@ -16,7 +16,7 @@ function! fhicl#base#Find_FHICL_File() abort
     endif
 
     let l:current_line = getline(".")
-    let l:current_file = expand('%')
+    let l:current_file = expand('%:p')
 
     " If we aren't on an include line, stop.
     if l:current_line !~# s:fhicl_include
