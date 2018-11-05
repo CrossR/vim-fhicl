@@ -4,7 +4,7 @@ Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in
 
  * Add basic syntax highlighting to `.fcl` files.
  * Helper for moving around included `fcl` files.
-     * Defaults to `Enter` to follow an include, and `Backspace` to return to the previous file.
+     * Defaults to `<Leader>-f` to follow an include, and `Backspace` to return to the previous file.
      * Multiple results are sent to the Location List.
 
 TODO:
@@ -43,8 +43,8 @@ let g:vim_fhicl#search_current = 0
 
 ```vim
 " Remap the follow function with the following.
-" Replace <CR> with the correct bind.
-nmap <CR> <Plug>vim-fhiclFindFhiclFile
+" Replace <leader>-f with the correct bind.
+nmap <leader>-f <Plug>vim-fhiclFindFhiclFile
 
 " Remap the swap back function with the following.
 " Replace <BS> with the correct bind.
