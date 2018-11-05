@@ -86,14 +86,20 @@ function! fhicl#base#Find_FHICL_File() abort
         return
     endif
 
+    " If the global variable storing the previous link does not exist, make
+    " it. Initialise it to the starter file so that we can always get back to
+    " that no matter what.
     if !exists('g:vim_fhicl_prev_link')
-        let g:vim_fhicl_prev_link = []
+        let l:start_file = {}
+        let l:start_file.path = l:current_file
+
+        let g:vim_fhicl_prev_link = [l:start_file]
     endif
 
     let l:prev_link = {}
     let l:prev_link.path = l:current_file
 
-    let g:vim_fhicl_prev_link += l:prev_link
+    let g:vim_fhicl_prev_link = g:vim_fhicl_prev_link + [l:prev_link]
 
 endfunction
 
@@ -112,7 +118,12 @@ function! fhicl#base#Swap_To_Previous() abort
 
     " Otherwise, swap to the listed file.
     let l:previous_file = g:vim_fhicl_prev_link[-1]
-    call remove(g:vim_fhicl_prev_link, -1)
+
+    " Don't remove the final element, sinch its the initial file the user
+    " opened. That way, we can always go back to that file.
+    if len(g:vim_fhicl_prev_link) > 1
+        call remove(g:vim_fhicl_prev_link, -1)
+    endif
 
     execute "edit " . l:previous_file.path
 
