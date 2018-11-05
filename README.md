@@ -2,10 +2,26 @@
 
 Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in Vim + Neovim.
 
- * Add basic syntax highlighting to `.fcl` files.
+ * Adds basic syntax highlighting to `.fcl` files.
+    * Highlight keywords like `physics`, `analyzers` to flag up typos.
+    * Properly colour `#include` statements, comments and numbers.
  * Helper for moving around included `fcl` files.
      * Defaults to `<Leader>-f` to follow an include, and `Backspace` to return to the previous file.
      * Multiple results are sent to the Location List, where they can be selected with `Enter` to open them.
+
+### Usage
+
+Once installed, syntax highlighting should be applied automatically for all
+`.fcl` files.
+
+Pressing `<leader>-f` on any `#include` statement (`leader`
+defaults to `\`, such that `\` then `f` calls the function) will search for and
+then open the corresponding `fcl` file. If multiple results are found, the
+Location List will be populated, which can be navigated like normal and a selected
+file opened with `Enter`.
+
+Once finished with a file, pressing `Backspace` will
+navigate back to the parent file.
 
 ### Installation
 
