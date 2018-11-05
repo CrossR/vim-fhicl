@@ -79,14 +79,14 @@ function! fhicl#base#Find_FHICL_File() abort
             execute "edit " . l:found_fhicl[0]
         endif
 
-        call setloclist(0, map(l:found_fhicl, '{"filename: v:val"}'))
+        call setloclist(0, map(l:found_fhicl, '{"filename": v:val}'))
         exec lopen
     elseif len(l:found_fhicl) == 0
         call EchoWarning("No matches found...")
         return
     endif
 
-
+    " TODO: How should this be set for values in the Loc List?
     let b:vim_fhicl_prev_link = {}
     let b:vim_fhicl_prev_link.path = l:current_file
 
