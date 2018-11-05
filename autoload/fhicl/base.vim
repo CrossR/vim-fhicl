@@ -70,7 +70,6 @@ function! fhicl#base#Find_FHICL_File() abort
     endfor
 
     " Deal with the results to open file.
-    " TODO: Open behaviour, ie readonly buffer etc.
     if len(l:found_fhicl) == 1
         execute "edit " . l:found_fhicl[0]
     elseif len(l:found_fhicl) > 1
@@ -132,7 +131,7 @@ endfunction
 " Helper function to echo a warning
 " Using echoerr is too much for not an error.
 " Using just echo isn't that visible.
-function! EchoWarning(msg)
+function! EchoWarning(msg) abort
     echohl WarningMsg
     echo "Warning"
     echohl None
