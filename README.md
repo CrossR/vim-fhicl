@@ -10,7 +10,6 @@ Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in
 TODO:
  * Look into properties to set for the opened buffer.
     * That is, set it to read only etc.
- * Make binds changeable.
 
 ### Installation
 
@@ -38,4 +37,17 @@ let g:vim_fhicl#search_setting = "all"
 " the first file will be opened, as well.
 " Defaults to 0, set to 1 to open it every time.
 let g:vim_fhicl#search_current = 0
+```
+
+### Custom Binds
+
+```vim
+" Remap the follow function with the following.
+" Replace <CR> with the correct bind.
+nmap <CR> <Plug>vim-fhiclFindFhiclFile
+
+" Remap the swap back function with the following.
+" Replace <BS> with the correct bind.
+nmap <BS> <Plug>vim-fhiclSwapToPrevious
+
 ```
