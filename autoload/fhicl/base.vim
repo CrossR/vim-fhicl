@@ -86,9 +86,14 @@ function! fhicl#base#Find_FHICL_File() abort
         return
     endif
 
-    " TODO: How should this be set for values in the Loc List?
-    let b:vim_fhicl_prev_link = {}
-    let b:vim_fhicl_prev_link.path = l:current_file
+    if !exists('g:vim_fhicl_prev_link')
+        let g:vim_fhicl_prev_link = []
+    endif
+
+    let l:prev_link = {}
+    let l:prev_link.path = l:current_file
+
+    let g:vim_fhicl_prev_link += l:prev_link
 
 endfunction
 
@@ -96,17 +101,20 @@ endfunction
 function! fhicl#base#Swap_To_Previous() abort
 
     " If there is no variable set, can't move back.
-    if !exists('b:vim_fhicl_prev_link')
+    if !exists('g:vim_fhicl_prev_link')
         return
     endif
 
     " If the variable is empty, can't move back.
-    if empty(b:vim_fhicl_prev_link)
+    if empty(g:vim_fhicl_prev_link)
         return
     endif
 
     " Otherwise, swap to the listed file.
-    execute "edit " . b:vim_fhicl_prev_link.path
+    let l:previous_file = g:vim_fhicl_prev_link[-1]
+    call remove(g:vim_fhicl_prev_link, -1)
+
+    execute "edit " . l:previous_file.path
 
 endfunction
 
