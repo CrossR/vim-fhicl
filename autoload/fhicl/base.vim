@@ -3,6 +3,7 @@
 let g:vim_fhicl#search_current = get(g:, 'vim_fhicl#search_current', 0)
 let g:vim_fhicl#search_setting = get(g:, 'vim_fhicl#search_setting', "all")
 let g:vim_fhicl#always_open_first = get(g:, 'vim_fhicl#always_open_first', 0)
+let g:vim_fhicl#dont_open_file = get(g:, 'vim_fhicl#dont_open_file', 0)
 
 let s:fhicl_include = '#include \?"\([a-zA-Z0-9/._]\+\)"'
 
@@ -15,6 +16,9 @@ function! fhicl#base#Find_FHICL_File() abort
         return
     endif
 
+    " Get the current line to check if it has an include.
+    " Get the current file path for later use of saving the current file for
+    " navigating back.
     let l:current_line = getline(".")
     let l:current_file = expand('%:p')
 
@@ -24,6 +28,7 @@ function! fhicl#base#Find_FHICL_File() abort
         return
     endif
 
+    " At this point, we are on an include line, so get the FHICL file name.
     let l:match_list = matchlist(l:current_line, s:fhicl_include)
 
     " If there is no second group, (ie the FHICL file path), stop.
@@ -44,8 +49,8 @@ function! fhicl#base#Find_FHICL_File() abort
 
     let l:found_fhicl = []
 
+    " Search for the file
     for path in l:search_paths
-        " Search for the file
 
         " If the folder doesn't exist, don't bother searching there.
         if !isdirectory(path)
@@ -58,6 +63,10 @@ function! fhicl#base#Find_FHICL_File() abort
             continue
         endif
 
+        " Actually do the search using find.
+        " If there is any results, add them to the ongoing list.
+        " If the relevant config option to stop on the first match is set,
+        " break when a match is found.
         let l:result = systemlist("find " . path . " -name " . l:fhicl_file)
 
         if len(l:result) > 0
@@ -69,20 +78,38 @@ function! fhicl#base#Find_FHICL_File() abort
         endif
     endfor
 
-    " Deal with the results to open file.
+    " Deal with the results:
+    "     - If there is only 1 result, open it.
+    "       - There is a config option to skip this and only populate the
+    "       location list instead.
+    "     - If there is more than 1, put them in the location list and open the
+    "     list.
+    "       - There is a config option to also open a file in the current
+    "       buffer here too.
+    "     - If nothing was found, report it and stop.
     if len(l:found_fhicl) == 1
-        execute "edit " . l:found_fhicl[0]
+
+        if g:vim_fhicl#dont_open_file
+            call setloclist(0, map(l:found_fhicl, '{"filename": v:val}'))
+            lopen
+        else
+            execute "edit " . l:found_fhicl[0]
+        endif
+
     elseif len(l:found_fhicl) > 1
 
-        if g:vim_fhicl#always_open_first
+        if g:vim_fhicl#always_open_first && !g:vim_fhicl#dont_open_file
             execute "edit " . l:found_fhicl[0]
         endif
 
         call setloclist(0, map(l:found_fhicl, '{"filename": v:val}'))
         lopen
+
     elseif len(l:found_fhicl) == 0
+
         call EchoWarning("No matches found...")
         return
+
     endif
 
     " If the global variable storing the previous link does not exist, make
@@ -95,6 +122,8 @@ function! fhicl#base#Find_FHICL_File() abort
         let g:vim_fhicl_prev_link = [l:start_file]
     endif
 
+    " Store the current file in a global variable such that it can be used
+    " later to move back to the previous file.
     let l:prev_link = {}
     let l:prev_link.path = l:current_file
 
@@ -118,7 +147,7 @@ function! fhicl#base#Swap_To_Previous() abort
     " Otherwise, swap to the listed file.
     let l:previous_file = g:vim_fhicl_prev_link[-1]
 
-    " Don't remove the final element, sinch its the initial file the user
+    " Don't remove the final element, since its the initial file the user
     " opened. That way, we can always go back to that file.
     if len(g:vim_fhicl_prev_link) > 1
         call remove(g:vim_fhicl_prev_link, -1)
