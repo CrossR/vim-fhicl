@@ -14,10 +14,7 @@ runtime! syntax/c.vim
 unlet b:current_syntax
 
 " FHICL Identifiers
-syntax match fhiclProperty "[a-zA-Z0-9_]\+\( \)*\(:\|\.\)"
-
-" Fix Numbers
-syntax match fhiclNumbers "[0-9]"
+syntax match fhiclProperty "^\s*\w\+\s*\(:\)\@<!"
 
 " FHICL Comments
 syntax match fhiclComment "#\(include\)\@!.*"
