@@ -78,7 +78,27 @@ function! fhicl#base#Find_FHICL_File() abort
         endif
     endfor
 
-    " Deal with the results:
+    " If the global variable storing the previous link does not exist, make
+    " it. Initialise it to the starter file so that we can always get back to
+    " that no matter what.
+    if !exists('g:vim_fhicl_prev_link')
+        let l:start_file = {}
+        let l:start_file.base_path = l:current_file
+
+        let g:vim_fhicl_prev_link = l:start_file
+    endif
+
+    " Store the current file in a global variable such that it can be used
+    " later to move back to the previous file.
+    " The values are stored in a dict, where the key is the file name and the
+    " value is the parent file. This makes it possible to always navigate
+    " back to the parent file, and also clean up the dict when moving between files.
+    for found_file in l:found_fhicl
+        let l:found_file_short = fnamemodify(found_file, ':t')
+        let g:vim_fhicl_prev_link[l:found_file_short] = l:current_file
+    endfor
+
+    " Now that the previous file is setup, deal with the results:
     "     - If there is only 1 result, open it.
     "       - There is a config option to skip this and only populate the
     "       location list instead.
@@ -112,23 +132,6 @@ function! fhicl#base#Find_FHICL_File() abort
 
     endif
 
-    " If the global variable storing the previous link does not exist, make
-    " it. Initialise it to the starter file so that we can always get back to
-    " that no matter what.
-    if !exists('g:vim_fhicl_prev_link')
-        let l:start_file = {}
-        let l:start_file.path = l:current_file
-
-        let g:vim_fhicl_prev_link = [l:start_file]
-    endif
-
-    " Store the current file in a global variable such that it can be used
-    " later to move back to the previous file.
-    let l:prev_link = {}
-    let l:prev_link.path = l:current_file
-
-    let g:vim_fhicl_prev_link = g:vim_fhicl_prev_link + [l:prev_link]
-
 endfunction
 
 " Function to move back to the previous FHICL file.
@@ -145,15 +148,21 @@ function! fhicl#base#Swap_To_Previous() abort
     endif
 
     " Otherwise, swap to the listed file.
-    let l:previous_file = g:vim_fhicl_prev_link[-1]
+    let l:current_file = expand('%:p')
+    let l:current_file_short = expand('%:t')
 
-    " Don't remove the final element, since its the initial file the user
-    " opened. That way, we can always go back to that file.
-    if len(g:vim_fhicl_prev_link) > 1
-        call remove(g:vim_fhicl_prev_link, -1)
-    endif
+    let l:previous_file = g:vim_fhicl_prev_link[l:current_file_short]
 
-    execute "edit " . l:previous_file.path
+    " Iterate over the global dict and remove any files that point to
+    " the one we are moving away from, since they aren't needed anymore.
+    for [key, value] in items(g:vim_fhicl_prev_link)
+        if value == l:current_file
+            call remove(g:vim_fhicl_prev_link, key)
+        endif
+    endfor
+
+    " Finally, open the previous file.
+    execute "edit " . l:previous_file
 
 endfunction
 
