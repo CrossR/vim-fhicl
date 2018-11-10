@@ -151,6 +151,11 @@ function! fhicl#base#Swap_To_Previous() abort
     let l:current_file = expand('%:p')
     let l:current_file_short = expand('%:t')
 
+    " If we are in the original file, don't bother going anywhere.
+    if l:current_file == g:vim_fhicl_prev_link["base_path"]
+        return
+    endif
+
     let l:previous_file = g:vim_fhicl_prev_link[l:current_file_short]
 
     " Iterate over the global dict and remove any files that point to
