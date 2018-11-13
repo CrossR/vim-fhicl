@@ -1,7 +1,7 @@
 " Vim syntax file
-" Language:	FHICL configure file
-" Maintainer:	Ryan Cross <r.cross@lancaster.ac.uk>
-" Last Change:	2018 Nov 02
+" Language:    FHICL
+" Maintainer:  Ryan Cross <r.cross@lancaster.ac.uk>
+" Last Change: 2018 Nov 02
 
 " Quit when a (custom) syntax file was already loaded
 if exists('b:current_syntax')
