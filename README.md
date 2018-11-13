@@ -8,6 +8,7 @@ Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in
  * Helper for moving around included `fcl` files.
      * Defaults to `<Leader>-f` to follow an include, and `Backspace` to return to the previous file.
      * Multiple results are sent to the Location List, where they can be selected with `Enter` to open them.
+ * Update the `commentstring` variable for `.fcl` files, so commenting plugins work.
 
 ### Usage
 
