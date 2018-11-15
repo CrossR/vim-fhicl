@@ -13,4 +13,4 @@ nnoremap <silent><buffer> <Plug>vim-fhiclSwapToPrevious :
             \<C-U>call fhicl#base#Swap_To_Previous()<CR>
 
 " Set the comment string so comment toggling plugins work properly.
-set commentstring=#%s
+setlocal commentstring=#\ %s
