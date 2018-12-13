@@ -156,7 +156,12 @@ function! fhicl#base#Swap_To_Previous() abort
         return
     endif
 
-    let l:previous_file = g:vim_fhicl_prev_link[l:current_file_short]
+    if has_key(g:vim_fhicl_prev_link, l:current_file_short)
+        let l:previous_file = g:vim_fhicl_prev_link[l:current_file_short]
+    else
+        let l:previous_file = g:vim_fhicl_prev_link["base_path"]
+        call EchoWarning("Unable to find link to previous file, so swapping to initial!")
+    endif
 
     " Iterate over the global dict and remove any files that point to
     " the one we are moving away from, since they aren't needed anymore.
