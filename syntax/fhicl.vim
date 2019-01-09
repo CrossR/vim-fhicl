@@ -15,7 +15,7 @@ unlet b:current_syntax
 
 " FHICL Identifiers, except the keywords which are defined
 " individually below.
-syntax match fhiclIdentifier "^\s*\w\+\s*\(:\)\@<!"
+syntax match fhiclIdentifier "^\s*\(\w\+\):\@="
 
 " FHICL Comments
 syntax match fhiclComment "#\(include\)\@!.*"
