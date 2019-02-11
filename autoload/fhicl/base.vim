@@ -244,7 +244,7 @@ function! fhicl#base#Find_All_FHICL() abort
         endif
     endfor
 
-    call fhicl#base#PopulateMovementGlobalsVariables(l:current_file_path, l:found_includes)
+    call fhicl#base#PopulateMovementGlobalsVariables(l:current_file_path, l:found_fhicl)
 
     " Now that the file movement is setup, deal with the results:
     "     - If there is any results, populate the location list with them.
