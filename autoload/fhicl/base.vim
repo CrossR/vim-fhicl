@@ -4,6 +4,7 @@ let g:vim_fhicl#search_current = get(g:, 'vim_fhicl#search_current', 0)
 let g:vim_fhicl#search_setting = get(g:, 'vim_fhicl#search_setting', "all")
 let g:vim_fhicl#always_open_first = get(g:, 'vim_fhicl#always_open_first', 0)
 let g:vim_fhicl#dont_open_file = get(g:, 'vim_fhicl#dont_open_file', 0)
+let g:vim_fhicl#search_command = get(g:, 'vim_fhicl#search_command', "grep -rl")
 
 let s:fhicl_include = '#include \?"\([a-zA-Z0-9/._]\+\)"'
 
@@ -20,7 +21,8 @@ function! fhicl#base#Find_FHICL_File() abort
     " Get the current file path for later use of saving the current file for
     " navigating back.
     let l:current_line = getline(".")
-    let l:current_file = expand('%:p')
+    let l:current_file_path = expand('%:p')
+    let l:current_abs_path = expand('%:p:h')
 
     " If we aren't on an include line, stop.
     if l:current_line !~# s:fhicl_include
@@ -47,6 +49,14 @@ function! fhicl#base#Find_FHICL_File() abort
         let l:search_paths = [$MRB_SOURCE] + l:search_paths
     endif
 
+    " If we should search the current directory, add it.
+    if (g:vim_fhicl#search_current == 1)
+        let l:search_paths = [l:current_abs_path] + l:search_paths
+    endif
+
+    " Remove any duplicates
+    let l:search_paths = fhicl#base#Remove_Path_Dupes(l:search_paths)
+
     let l:found_fhicl = []
 
     " Search for the file
@@ -57,9 +67,9 @@ function! fhicl#base#Find_FHICL_File() abort
             continue
         endif
 
-        " Skip checking the current working dir if the config option is set.
-        " This is to match the functionality of find_fhicl.sh by default.
-        if path == "." && g:vim_fhicl#search_current == 0
+        " Skip checking the current working directory, since if needed it will
+        " have already been added.
+        if path == "."
             continue
         endif
 
@@ -78,27 +88,9 @@ function! fhicl#base#Find_FHICL_File() abort
         endif
     endfor
 
-    " If the global variable storing the previous link does not exist, make
-    " it. Initialise it to the starter file so that we can always get back to
-    " that no matter what.
-    if !exists('g:vim_fhicl_prev_link')
-        let l:start_file = {}
-        let l:start_file.base_path = l:current_file
+    call fhicl#base#PopulateMovementGlobalsVariables(l:current_file_path, l:found_fhicl)
 
-        let g:vim_fhicl_prev_link = l:start_file
-    endif
-
-    " Store the current file in a global variable such that it can be used
-    " later to move back to the previous file.
-    " The values are stored in a dict, where the key is the file name and the
-    " value is the parent file. This makes it possible to always navigate
-    " back to the parent file, and also clean up the dict when moving between files.
-    for found_file in l:found_fhicl
-        let l:found_file_short = fnamemodify(found_file, ':t')
-        let g:vim_fhicl_prev_link[l:found_file_short] = l:current_file
-    endfor
-
-    " Now that the previous file is setup, deal with the results:
+    " Now that the file movement is setup, deal with the results:
     "     - If there is only 1 result, open it.
     "       - There is a config option to skip this and only populate the
     "       location list instead.
@@ -148,16 +140,16 @@ function! fhicl#base#Swap_To_Previous() abort
     endif
 
     " Otherwise, swap to the listed file.
-    let l:current_file = expand('%:p')
-    let l:current_file_short = expand('%:t')
+    let l:current_file_path = expand('%:p')
+    let l:current_file = expand('%:t')
 
     " If we are in the original file, don't bother going anywhere.
-    if l:current_file == g:vim_fhicl_prev_link["base_path"]
+    if l:current_file_path == g:vim_fhicl_prev_link["base_path"]
         return
     endif
 
-    if has_key(g:vim_fhicl_prev_link, l:current_file_short)
-        let l:previous_file = g:vim_fhicl_prev_link[l:current_file_short]
+    if has_key(g:vim_fhicl_prev_link, l:current_file)
+        let l:previous_file = g:vim_fhicl_prev_link[l:current_file]
     else
         let l:previous_file = g:vim_fhicl_prev_link["base_path"]
         call EchoWarning("Unable to find link to previous file, so swapping to initial!")
@@ -166,7 +158,7 @@ function! fhicl#base#Swap_To_Previous() abort
     " Iterate over the global dict and remove any files that point to
     " the one we are moving away from, since they aren't needed anymore.
     for [key, value] in items(g:vim_fhicl_prev_link)
-        if value == l:current_file
+        if value == l:current_file_path
             call remove(g:vim_fhicl_prev_link, key)
         endif
     endfor
@@ -174,6 +166,123 @@ function! fhicl#base#Swap_To_Previous() abort
     " Finally, open the previous file.
     execute "edit " . l:previous_file
 
+endfunction
+
+" Function to find the FHICL files that include the current one.
+function! fhicl#base#Find_FHICL_Includes() abort
+
+    " If the env var isn't set, stop.
+    if empty($FHICL_FILE_PATH)
+        call EchoWarning("$FHICL_FILE_PATH isn't set!")
+        return
+    endif
+
+    " Get the current file path to search for.
+    let l:current_file_path = expand('%:p')
+    let l:current_file = expand('%:t')
+    let l:current_abs_path = expand('%:p:h')
+
+    " Make the search term (i.e. the include line) and the search paths.
+    let l:search_term = '#include "' . l:current_file . '"'
+    let l:search_paths = split($FHICL_FILE_PATH, ":")
+
+    " If a local sources folder exists, use that.
+    " Add to the front since to favour a local, editable copy.
+    if exists($MRB_SOURCE)
+        let l:search_paths = [$MRB_SOURCE] + l:search_paths
+    endif
+
+    " If we should search the current directory, add it.
+    if (g:vim_fhicl#search_current == 1)
+        let l:search_paths = [l:current_abs_path] + l:search_paths
+    endif
+
+    " Remove any duplicates
+    let l:search_paths = fhicl#base#Remove_Path_Dupes(l:search_paths)
+
+
+    let l:found_includes = []
+
+    " Search for the file in other include paths
+    for path in l:search_paths
+
+        " If the folder doesn't exist, don't bother searching there.
+        if !isdirectory(path)
+            continue
+        endif
+
+        " Skip checking the current working directory, since if needed it will
+        " have already been added.
+        if path == "."
+            continue
+        endif
+
+        " Actually do the search using the user defined tool (usually grep,
+        " though ripgrep is faster).
+        " If there is any results, add them to the ongoing list.
+        let l:result = systemlist(g:vim_fhicl#search_command . " '" . l:search_term . "' " . path)
+
+        if len(l:result) > 0
+            let l:found_includes = l:found_includes + l:result
+        endif
+    endfor
+
+    call fhicl#base#PopulateMovementGlobalsVariables(l:current_file_path, l:found_includes)
+
+    " Now that the file movement is setup, deal with the results:
+    "     - If there is any results, populate the location list with them.
+    "     - If nothing was found, report it and stop.
+    if len(l:found_includes) > 0
+
+        call setloclist(0, map(l:found_includes, '{"filename": v:val}'))
+        lopen
+
+    elseif len(l:found_includes) == 0
+
+        call EchoWarning("No matches found...")
+        return
+
+    endif
+
+endfunction
+
+" Helper function to populate the global variables that are used to move
+" around FHICL files.
+function! fhicl#base#PopulateMovementGlobalsVariables(current_file, file_list) abort
+
+    " If the global variable storing the previous link does not exist, make
+    " it. Initialise it to the starter file so that we can always get back to
+    " that no matter what.
+    if !exists('g:vim_fhicl_prev_link')
+        let l:start_file = {}
+        let l:start_file.base_path = a:current_file
+
+        let g:vim_fhicl_prev_link = l:start_file
+    endif
+
+    " Store the current file in a global variable such that it can be used
+    " later to move back to the previous file.
+    " The values are stored in a dict, where the key is the file name and the
+    " value is the parent file. This makes it possible to always navigate
+    " back to the parent file, and also clean up the dict when moving between files.
+    for found_file in a:file_list
+        let l:found_file_short = fnamemodify(found_file, ':t')
+        let g:vim_fhicl_prev_link[l:found_file_short] = a:current_file
+    endfor
+
+endfunction
+
+" Helper function to remove duplicates from the path list.
+function! fhicl#base#Remove_Path_Dupes(path_list) abort
+    " Make a dictionary, since they can't contain duplicates.
+    " Once finished, return the keys of this now unique dictionary.
+    let l:dict = {}
+
+    for path in a:path_list
+        let l:dict[path] = ''
+    endfor
+
+    return keys(l:dict)
 endfunction
 
 " Helper function to echo a warning
