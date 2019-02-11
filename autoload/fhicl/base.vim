@@ -48,6 +48,7 @@ function! fhicl#base#Find_FHICL_File() abort
         let l:search_paths = [$MRB_SOURCE] + l:search_paths
     endif
 
+    let l:not_checked_current = 0
     let l:found_fhicl = []
 
     " Search for the file
@@ -60,7 +61,9 @@ function! fhicl#base#Find_FHICL_File() abort
 
         " Skip checking the current working dir if the config option is set.
         " This is to match the functionality of find_fhicl.sh by default.
-        if path == "." && g:vim_fhicl#search_current == 0
+        " Also checks that the current folder hasn't already been checked,
+        " since it can appear multiple times.
+        if path == "." && g:vim_fhicl#search_current == 0 && l:not_checked_current == 0
             continue
         endif
 
@@ -182,6 +185,7 @@ function! fhicl#base#Find_FHICL_Includes() abort
         let l:search_paths = [$MRB_SOURCE] + l:search_paths
     endif
 
+    let l:not_checked_current = 0
     let l:found_includes = []
 
     " Search for the file in other include paths
@@ -194,7 +198,9 @@ function! fhicl#base#Find_FHICL_Includes() abort
 
         " Skip checking the current working dir if the config option is set.
         " This is to match the functionality of find_fhicl.sh by default.
-        if path == "." && g:vim_fhicl#search_current == 0
+        " Also checks that the current folder hasn't already been checked,
+        " since it can appear multiple times.
+        if path == "." && g:vim_fhicl#search_current == 0 && l:not_checked_current == 0
             continue
         endif
 
