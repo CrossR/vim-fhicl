@@ -22,6 +22,7 @@ function! fhicl#base#Find_FHICL_File() abort
     " navigating back.
     let l:current_line = getline(".")
     let l:current_file_path = expand('%:p')
+    let l:current_abs_path = expand('%:p:h')
 
     " If we aren't on an include line, stop.
     if l:current_line !~# s:fhicl_include
@@ -48,7 +49,14 @@ function! fhicl#base#Find_FHICL_File() abort
         let l:search_paths = [$MRB_SOURCE] + l:search_paths
     endif
 
-    let l:not_checked_current = 0
+    " If we should search the current directory, add it.
+    if (g:vim_fhicl#search_current == 1)
+        let l:search_paths = [l:current_abs_path] + l:search_paths
+    endif
+
+    " Remove any duplicates
+    let l:search_paths = fhicl#base#Remove_Path_Dupes(l:search_paths)
+
     let l:found_fhicl = []
 
     " Search for the file
@@ -59,11 +67,9 @@ function! fhicl#base#Find_FHICL_File() abort
             continue
         endif
 
-        " Skip checking the current working dir if the config option is set.
-        " This is to match the functionality of find_fhicl.sh by default.
-        " Also checks that the current folder hasn't already been checked,
-        " since it can appear multiple times.
-        if path == "." && g:vim_fhicl#search_current == 0 && l:not_checked_current == 0
+        " Skip checking the current working directory, since if needed it will
+        " have already been added.
+        if path == "."
             continue
         endif
 
@@ -174,6 +180,7 @@ function! fhicl#base#Find_FHICL_Includes() abort
     " Get the current file path to search for.
     let l:current_file_path = expand('%:p')
     let l:current_file = expand('%:t')
+    let l:current_abs_path = expand('%:p:h')
 
     " Make the search term (i.e. the include line) and the search paths.
     let l:search_term = '#include "' . l:current_file . '"'
@@ -185,7 +192,15 @@ function! fhicl#base#Find_FHICL_Includes() abort
         let l:search_paths = [$MRB_SOURCE] + l:search_paths
     endif
 
-    let l:not_checked_current = 0
+    " If we should search the current directory, add it.
+    if (g:vim_fhicl#search_current == 1)
+        let l:search_paths = [l:current_abs_path] + l:search_paths
+    endif
+
+    " Remove any duplicates
+    let l:search_paths = fhicl#base#Remove_Path_Dupes(l:search_paths)
+
+
     let l:found_includes = []
 
     " Search for the file in other include paths
@@ -196,18 +211,10 @@ function! fhicl#base#Find_FHICL_Includes() abort
             continue
         endif
 
-        " Skip checking the current working dir if the config option is set.
-        " This is to match the functionality of find_fhicl.sh by default.
-        " Also checks that the current folder hasn't already been checked,
-        " since it can appear multiple times.
-        if path == "." && g:vim_fhicl#search_current == 0
+        " Skip checking the current working directory, since if needed it will
+        " have already been added.
+        if path == "."
             continue
-        elseif path == "." && g:vim_fhicl#search_current == 1
-            if l:not_checked_current == 1
-                continue
-            else
-                let l:not_checked_current = 1
-            endif
         endif
 
         " Actually do the search using the user defined tool (usually grep,
@@ -239,6 +246,8 @@ function! fhicl#base#Find_FHICL_Includes() abort
 
 endfunction
 
+" Helper function to populate the global variables that are used to move
+" around FHICL files.
 function! fhicl#base#PopulateMovementGlobalsVariables(current_file, file_list) abort
 
     " If the global variable storing the previous link does not exist, make
@@ -261,6 +270,19 @@ function! fhicl#base#PopulateMovementGlobalsVariables(current_file, file_list) a
         let g:vim_fhicl_prev_link[l:found_file_short] = a:current_file
     endfor
 
+endfunction
+
+" Helper function to remove duplicates from the path list.
+function! fhicl#base#Remove_Path_Dupes(path_list) abort
+    " Make a dictionary, since they can't contain duplicates.
+    " Once finished, return the keys of this now unique dictionary.
+    let l:dict = {}
+
+    for path in a:path_list
+        let l:dict[path] = ''
+    endfor
+
+    return keys(l:dict)
 endfunction
 
 " Helper function to echo a warning
