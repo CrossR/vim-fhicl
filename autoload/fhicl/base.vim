@@ -21,7 +21,7 @@ function! fhicl#base#Find_FHICL_File() abort
     " Get the current file path for later use of saving the current file for
     " navigating back.
     let l:current_line = getline(".")
-    let l:current_file = expand('%:p')
+    let l:current_file_path = expand('%:p')
 
     " If we aren't on an include line, stop.
     if l:current_line !~# s:fhicl_include
@@ -79,7 +79,7 @@ function! fhicl#base#Find_FHICL_File() abort
         endif
     endfor
 
-    call fhicl#base#PopulateMovementGlobalsVariables(l:current_file, l:found_fhicl)
+    call fhicl#base#PopulateMovementGlobalsVariables(l:current_file_path, l:found_fhicl)
 
     " Now that the file movement is setup, deal with the results:
     "     - If there is only 1 result, open it.
@@ -131,16 +131,16 @@ function! fhicl#base#Swap_To_Previous() abort
     endif
 
     " Otherwise, swap to the listed file.
-    let l:current_file = expand('%:p')
-    let l:current_file_short = expand('%:t')
+    let l:current_file_path = expand('%:p')
+    let l:current_file = expand('%:t')
 
     " If we are in the original file, don't bother going anywhere.
-    if l:current_file == g:vim_fhicl_prev_link["base_path"]
+    if l:current_file_path == g:vim_fhicl_prev_link["base_path"]
         return
     endif
 
-    if has_key(g:vim_fhicl_prev_link, l:current_file_short)
-        let l:previous_file = g:vim_fhicl_prev_link[l:current_file_short]
+    if has_key(g:vim_fhicl_prev_link, l:current_file)
+        let l:previous_file = g:vim_fhicl_prev_link[l:current_file]
     else
         let l:previous_file = g:vim_fhicl_prev_link["base_path"]
         call EchoWarning("Unable to find link to previous file, so swapping to initial!")
@@ -149,7 +149,7 @@ function! fhicl#base#Swap_To_Previous() abort
     " Iterate over the global dict and remove any files that point to
     " the one we are moving away from, since they aren't needed anymore.
     for [key, value] in items(g:vim_fhicl_prev_link)
-        if value == l:current_file
+        if value == l:current_file_path
             call remove(g:vim_fhicl_prev_link, key)
         endif
     endfor
@@ -160,7 +160,7 @@ function! fhicl#base#Swap_To_Previous() abort
 endfunction
 
 " Function to find the FHICL files that include the current one.
-function! fhicl#base#Find_FHICL_File() abort
+function! fhicl#base#Find_FHICL_Includes() abort
 
     " If the env var isn't set, stop.
     if empty($FHICL_FILE_PATH)
@@ -169,7 +169,8 @@ function! fhicl#base#Find_FHICL_File() abort
     endif
 
     " Get the current file path to search for.
-    let l:current_file = expand('%:p')
+    let l:current_file_path = expand('%:p')
+    let l:current_file = expand('%:t')
 
     " Make the search term (i.e. the include line) and the search paths.
     let l:search_term = '#include "' . l:current_file . '"'
@@ -200,24 +201,24 @@ function! fhicl#base#Find_FHICL_File() abort
         " Actually do the search using the user defined tool (usually grep,
         " though ripgrep is faster).
         " If there is any results, add them to the ongoing list.
-        let l:result = systemlist(g:vim_fhicl#search_tool . " " . l:search_term . " " . path)
+        let l:result = systemlist(g:vim_fhicl#search_tool . ' "' . l:search_term . '" ' . path)
 
         if len(l:result) > 0
             let l:found_includes = l:found_includes + l:result
         endif
     endfor
 
-    call fhicl#base#PopulateMovementGlobalsVariables(l:current_file, l:found_includes)
+    call fhicl#base#PopulateMovementGlobalsVariables(l:current_file_path, l:found_includes)
 
     " Now that the file movement is setup, deal with the results:
     "     - If there is any results, populate the location list with them.
     "     - If nothing was found, report it and stop.
-    if len(l:found_fhicl) > 0
+    if len(l:found_includes) > 0
 
-        call setloclist(0, map(l:found_fhicl, '{"filename": v:val}'))
+        call setloclist(0, map(l:found_includes, '{"filename": v:val}'))
         lopen
 
-    elseif len(l:found_fhicl) == 0
+    elseif len(l:found_includes) == 0
 
         call EchoWarning("No matches found...")
         return
