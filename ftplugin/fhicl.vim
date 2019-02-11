@@ -18,8 +18,8 @@ endif
 nnoremap <silent><buffer> <Plug>vim-fhiclFindIncludes :
             \<C-U>call fhicl#base#Find_FHICL_Includes()<CR>
 
-if !hasmapto('<Plug>vim-fhic()lFindAll')
-    nmap <silent><buffer> <leader>fs <Plug>vim-fhic()lFindAll
+if !hasmapto('<Plug>vim-fhiclFindAll')
+    nmap <silent><buffer> <leader>fs <Plug>vim-fhiclFindAll
 endif
 nnoremap <silent><buffer> <Plug>vim-fhiclFindAll :
             \<C-U>call fhicl#base#Find_All_FHICL()<CR>
