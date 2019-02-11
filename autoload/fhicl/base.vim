@@ -5,6 +5,7 @@ let g:vim_fhicl#search_setting = get(g:, 'vim_fhicl#search_setting', "all")
 let g:vim_fhicl#always_open_first = get(g:, 'vim_fhicl#always_open_first', 0)
 let g:vim_fhicl#dont_open_file = get(g:, 'vim_fhicl#dont_open_file', 0)
 let g:vim_fhicl#search_command = get(g:, 'vim_fhicl#search_command', "grep -rl")
+let g:vim_fhicl#find_command = get(g:, 'vim_fhicl#find_command', "find")
 
 let s:fhicl_include = '#include \?"\([a-zA-Z0-9/._]\+\)"'
 
@@ -41,21 +42,7 @@ function! fhicl#base#Find_FHICL_File() abort
 
     " Get the file to look for, and setup the search paths.
     let l:fhicl_file = split(l:match_list[1], "/")[-1]
-    let l:search_paths = split($FHICL_FILE_PATH, ":")
-
-    " If a local sources folder exists, use that.
-    " Add to the front since to favour a local, editable copy.
-    if exists($MRB_SOURCE)
-        let l:search_paths = [$MRB_SOURCE] + l:search_paths
-    endif
-
-    " If we should search the current directory, add it.
-    if (g:vim_fhicl#search_current == 1)
-        let l:search_paths = [l:current_abs_path] + l:search_paths
-    endif
-
-    " Remove any duplicates
-    let l:search_paths = fhicl#base#Remove_Path_Dupes(l:search_paths)
+    let l:search_paths = fhicl#base#Get_Search_Paths()
 
     let l:found_fhicl = []
 
@@ -100,28 +87,22 @@ function! fhicl#base#Find_FHICL_File() abort
     "       buffer here too.
     "     - If nothing was found, report it and stop.
     if len(l:found_fhicl) == 1
-
         if g:vim_fhicl#dont_open_file
             call setloclist(0, map(l:found_fhicl, '{"filename": v:val}'))
             lopen
         else
             execute "edit " . l:found_fhicl[0]
         endif
-
     elseif len(l:found_fhicl) > 1
-
         if g:vim_fhicl#always_open_first && !g:vim_fhicl#dont_open_file
             execute "edit " . l:found_fhicl[0]
         endif
 
         call setloclist(0, map(l:found_fhicl, '{"filename": v:val}'))
         lopen
-
     elseif len(l:found_fhicl) == 0
-
         call EchoWarning("No matches found...")
         return
-
     endif
 
 endfunction
@@ -180,26 +161,10 @@ function! fhicl#base#Find_FHICL_Includes() abort
     " Get the current file path to search for.
     let l:current_file_path = expand('%:p')
     let l:current_file = expand('%:t')
-    let l:current_abs_path = expand('%:p:h')
 
     " Make the search term (i.e. the include line) and the search paths.
     let l:search_term = '#include "' . l:current_file . '"'
-    let l:search_paths = split($FHICL_FILE_PATH, ":")
-
-    " If a local sources folder exists, use that.
-    " Add to the front since to favour a local, editable copy.
-    if exists($MRB_SOURCE)
-        let l:search_paths = [$MRB_SOURCE] + l:search_paths
-    endif
-
-    " If we should search the current directory, add it.
-    if (g:vim_fhicl#search_current == 1)
-        let l:search_paths = [l:current_abs_path] + l:search_paths
-    endif
-
-    " Remove any duplicates
-    let l:search_paths = fhicl#base#Remove_Path_Dupes(l:search_paths)
-
+    let l:search_paths = fhicl#base#Get_Search_Paths()
 
     let l:found_includes = []
 
@@ -233,15 +198,66 @@ function! fhicl#base#Find_FHICL_Includes() abort
     "     - If there is any results, populate the location list with them.
     "     - If nothing was found, report it and stop.
     if len(l:found_includes) > 0
-
         call setloclist(0, map(l:found_includes, '{"filename": v:val}'))
         lopen
-
     elseif len(l:found_includes) == 0
-
         call EchoWarning("No matches found...")
         return
+    endif
 
+endfunction
+
+" Function to list all FHICL files that are in the FHICL_FILE_PATH.
+function! fhicl#base#Find_All_FHICL() abort
+
+    " If the env var isn't set, stop.
+    if empty($FHICL_FILE_PATH)
+        call EchoWarning("$FHICL_FILE_PATH isn't set!")
+        return
+    endif
+
+    let l:current_file_path = expand('%:p')
+    let l:search_paths = fhicl#base#Get_Search_Paths()
+
+    let l:found_fhicl = []
+
+    " Search for the file in other include paths
+    for path in l:search_paths
+
+        " If the folder doesn't exist, don't bother searching there.
+        if !isdirectory(path)
+            continue
+        endif
+
+        " Skip checking the current working directory, since if needed it will
+        " have already been added.
+        if path == "."
+            continue
+        endif
+
+        " Actually do the search using the user defined tool (usually find).
+        " If there is any results, add them to the ongoing list.
+        let l:result = systemlist(g:vim_fhicl#find_command . ' ' . path . ' -name "*.fcl"')
+
+        if len(l:result) > 0
+            let l:found_fhicl = l:found_fhicl + l:result
+        endif
+    endfor
+
+    call fhicl#base#PopulateMovementGlobalsVariables(l:current_file_path, l:found_fhicl)
+
+    " Now that the file movement is setup, deal with the results:
+    "     - If there is any results, populate the location list with them.
+    "     - If nothing was found, report it and stop.
+    if len(l:found_fhicl) > 0 && exists("g:fzf#vim#buffers") == 1
+        call fzf#run(fzf#wrap({'source': l:found_fhicl, 
+                    \ 'options': '-d "/" --with-nth="-1" --preview "head -100 {}"'}))
+    elseif len(l:found_fhicl) > 0 && exists("g:fzf#vim#buffers") == 0
+        call setloclist(0, map(l:found_fhicl, '{"filename": v:val}'))
+        lopen
+    elseif len(l:found_fhicl) == 0
+        call EchoWarning("No matches found...")
+        return
     endif
 
 endfunction
@@ -269,6 +285,28 @@ function! fhicl#base#PopulateMovementGlobalsVariables(current_file, file_list) a
         let l:found_file_short = fnamemodify(found_file, ':t')
         let g:vim_fhicl_prev_link[l:found_file_short] = a:current_file
     endfor
+
+endfunction
+
+" Helper function to get the FHICL search path.
+function! fhicl#base#Get_Search_Paths() abort
+
+    let l:search_paths = split($FHICL_FILE_PATH, ":")
+    let l:current_abs_path = expand('%:p:h')
+
+    " If a local sources folder exists, use that.
+    " Add to the front since to favour a local, editable copy.
+    if exists($MRB_SOURCE)
+        let l:search_paths = [$MRB_SOURCE] + l:search_paths
+    endif
+
+    " If we should search the current directory, add it.
+    if (g:vim_fhicl#search_current == 1)
+        let l:search_paths = [l:current_abs_path] + l:search_paths
+    endif
+
+    " Remove any duplicates
+    return fhicl#base#Remove_Path_Dupes(l:search_paths)
 
 endfunction
 
