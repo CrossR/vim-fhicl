@@ -4,6 +4,7 @@ let g:vim_fhicl#search_current = get(g:, 'vim_fhicl#search_current', 0)
 let g:vim_fhicl#search_setting = get(g:, 'vim_fhicl#search_setting', "all")
 let g:vim_fhicl#always_open_first = get(g:, 'vim_fhicl#always_open_first', 0)
 let g:vim_fhicl#dont_open_file = get(g:, 'vim_fhicl#dont_open_file', 0)
+let g:vim_fhicl#search_tool = get(g:, 'vim_fhicl#dont_open_file', "grep")
 
 let s:fhicl_include = '#include \?"\([a-zA-Z0-9/._]\+\)"'
 
