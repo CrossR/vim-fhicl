@@ -12,6 +12,10 @@ Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in
      * Populates the Vim Location List with all the results.
      * Default to `<Leader>-i`. Then `Enter` to select a file in the Location
      * List, and `Backspace` to return to the previous file.
+     * Uses `grep` by default, but can be changed to any other command.
+ * Helper for finding all `fcl` files in the current path.
+     * Results are pasted into the location list, or piped into `FZF` if available.
+        * `fzf`: https://github.com/junegunn/fzf.vim
  * Update the `commentstring` variable for `.fcl` files, so commenting plugins work.
  * Sets the `JSON` indentation rules for the `.fcl` files, to give more intelligent auto indentation.
     * **TODO:** Check and update this logic to make sure it works nicely for all files, and all styles of line.

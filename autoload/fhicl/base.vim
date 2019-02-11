@@ -5,7 +5,7 @@ let g:vim_fhicl#search_setting = get(g:, 'vim_fhicl#search_setting', "all")
 let g:vim_fhicl#always_open_first = get(g:, 'vim_fhicl#always_open_first', 0)
 let g:vim_fhicl#dont_open_file = get(g:, 'vim_fhicl#dont_open_file', 0)
 let g:vim_fhicl#search_command = get(g:, 'vim_fhicl#search_command', "grep -rl")
-let g:vim_fhicl#find_command = get(g:, 'vim_fhicl#find_command', "grep -rl")
+let g:vim_fhicl#find_command = get(g:, 'vim_fhicl#find_command', "find")
 
 let s:fhicl_include = '#include \?"\([a-zA-Z0-9/._]\+\)"'
 
@@ -236,7 +236,7 @@ function! fhicl#base#Find_All_FHICL() abort
 
         " Actually do the search using the user defined tool (usually find).
         " If there is any results, add them to the ongoing list.
-        let l:result = systemlist(g:vim_fhicl#find_command . " " . path . " *.fcl")
+        let l:result = systemlist(g:vim_fhicl#find_command . " " . path . " -name *.fcl")
 
         if len(l:result) > 0
             let l:found_fhicl = l:found_fhicl + l:result
@@ -247,7 +247,7 @@ function! fhicl#base#Find_All_FHICL() abort
     "     - If there is any results, populate the location list with them.
     "     - If nothing was found, report it and stop.
     if len(l:found_fhicl) > 0 && exists("g:fzf#vim#buffers") == 1
-        let g:test_fhicl = l:found_fhicl
+        call fzf#run(fzf#wrap({'source': l:found_fhicl, 'options': '-d "/" --with-nth="-1"'}))
     elseif len(l:found_fhicl) > 0 && exists("g:fzf#vim#buffers") == 0
         call setloclist(0, map(l:found_fhicl, '{"filename": v:val}'))
         lopen
