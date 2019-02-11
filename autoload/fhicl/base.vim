@@ -4,7 +4,7 @@ let g:vim_fhicl#search_current = get(g:, 'vim_fhicl#search_current', 0)
 let g:vim_fhicl#search_setting = get(g:, 'vim_fhicl#search_setting', "all")
 let g:vim_fhicl#always_open_first = get(g:, 'vim_fhicl#always_open_first', 0)
 let g:vim_fhicl#dont_open_file = get(g:, 'vim_fhicl#dont_open_file', 0)
-let g:vim_fhicl#search_tool = get(g:, 'vim_fhicl#search_tool', "grep")
+let g:vim_fhicl#search_command = get(g:, 'vim_fhicl#search_command', "grep -rl")
 
 let s:fhicl_include = '#include \?"\([a-zA-Z0-9/._]\+\)"'
 
@@ -201,7 +201,7 @@ function! fhicl#base#Find_FHICL_Includes() abort
         " Actually do the search using the user defined tool (usually grep,
         " though ripgrep is faster).
         " If there is any results, add them to the ongoing list.
-        let l:result = systemlist(g:vim_fhicl#search_tool . ' "' . l:search_term . '" ' . path)
+        let l:result = systemlist(g:vim_fhicl#search_command . " '" . l:search_term . "' " . path)
 
         if len(l:result) > 0
             let l:found_includes = l:found_includes + l:result
