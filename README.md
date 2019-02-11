@@ -8,8 +8,12 @@ Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in
  * Helper for moving around included `fcl` files.
      * Defaults to `<Leader>-f` to follow an include, and `Backspace` to return to the previous file.
      * Multiple results are sent to the Location List, where they can be selected with `Enter` to open them.
+ * Helper for finding all `fcl` files that `#include ""` the current one.
+     * Populates the Vim Location List with all the results.
+     * Default to `<Leader>-i`. Then `Enter` to select a file in the Location
+     * List, and `Backspace` to return to the previous file.
  * Update the `commentstring` variable for `.fcl` files, so commenting plugins work.
- * Sets the `JSON` indentation rules for the `.fcl` files, to give more intellingent auto indentation.
+ * Sets the `JSON` indentation rules for the `.fcl` files, to give more intelligent auto indentation.
     * **TODO:** Check and update this logic to make sure it works nicely for all files, and all styles of line.
 
 ### Usage
@@ -60,6 +64,15 @@ let g:vim_fhicl#always_open_first = 0
 " Defaults to 0, set to 1 to never open a file and only populate
 " the location list.
 let g:vim_fhicl#dont_open_file = 0
+
+" The command used to search for files that include the current one.
+" If replaced, the command should be passed with any flags needed for
+" recursive running, as well as only returning files.
+" Defaults to using "grep -lr", where "l" returns just files and "r" makes
+" grep recursive.
+" To use ripgrep, instead use "rg --files".
+let g:vim_fhicl#search_command = "grep -lr"
+
 ```
 
 ### Custom Binds
@@ -72,5 +85,9 @@ nmap <leader>-f <Plug>vim-fhiclFindFhiclFile
 " Remap the swap back function with the following.
 " Replace <BS> with the correct bind.
 nmap <BS> <Plug>vim-fhiclSwapToPrevious
+
+" Remap the search include function with the following.
+" Replace <leader>-i with the correct bind.
+nmap <leader>-i <Plug>vim-fhiclFindIncludes
 
 ```

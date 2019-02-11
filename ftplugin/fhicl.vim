@@ -12,6 +12,12 @@ endif
 nnoremap <silent><buffer> <Plug>vim-fhiclSwapToPrevious :
             \<C-U>call fhicl#base#Swap_To_Previous()<CR>
 
+if !hasmapto('<Plug>vim-fhiclFindIncludes')
+    nmap <silent><buffer> <leader>i <Plug>vim-fhiclFindIncludes
+endif
+nnoremap <silent><buffer> <Plug>vim-fhiclFindIncludes :
+            \<C-U>call fhicl#base#Find_FHICL_Includes()<CR>
+
 " Set the comment string so comment toggling plugins work properly.
 setlocal commentstring=#\ %s
 
