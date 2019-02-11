@@ -176,6 +176,96 @@ function! fhicl#base#Swap_To_Previous() abort
 
 endfunction
 
+" Function to find the FHICL files that include the current one.
+function! fhicl#base#Find_FHICL_File() abort
+
+    " If the env var isn't set, stop.
+    if empty($FHICL_FILE_PATH)
+        call EchoWarning("$FHICL_FILE_PATH isn't set!")
+        return
+    endif
+
+    " Get the current file path to search for.
+    let l:current_file = expand('%:p')
+
+    " Make the search term (i.e. the include line) and the search paths.
+    let l:search_term = '#include "' . l:current_file . '"'
+    let l:search_paths = split($FHICL_FILE_PATH, ":")
+
+    " If a local sources folder exists, use that.
+    " Add to the front since to favour a local, editable copy.
+    if exists($MRB_SOURCE)
+        let l:search_paths = [$MRB_SOURCE] + l:search_paths
+    endif
+
+    let l:found_includes = []
+
+    " Search for the file in other include paths
+    for path in l:search_paths
+
+        " If the folder doesn't exist, don't bother searching there.
+        if !isdirectory(path)
+            continue
+        endif
+
+        " Skip checking the current working dir if the config option is set.
+        " This is to match the functionality of find_fhicl.sh by default.
+        if path == "." && g:vim_fhicl#search_current == 0
+            continue
+        endif
+
+        " Actually do the search using grep or ripgrep.
+        " If there is any results, add them to the ongoing list.
+        let l:result = systemlist(g:vim_fhicl#search_tool . " " . l:search_term . " " . path)
+
+        if len(l:result) > 0
+            let l:found_includes = l:found_includes + l:result
+        endif
+    endfor
+
+    " If the global variable storing the previous link does not exist, make
+    " it. Initialise it to the starter file so that we can always get back to
+    " that no matter what.
+    if !exists('g:vim_fhicl_prev_link')
+        let l:start_file = {}
+        let l:start_file.base_path = l:current_file
+
+        let g:vim_fhicl_prev_link = l:start_file
+    endif
+
+    " Store the current file in a global variable such that it can be used
+    " later to move back to the previous file.
+    " The values are stored in a dict, where the key is the file name and the
+    " value is the parent file. This makes it possible to always navigate
+    " back to the parent file, and also clean up the dict when moving between files.
+    for found_file in l:found_fhicl
+        let l:found_file_short = fnamemodify(found_file, ':t')
+        let g:vim_fhicl_prev_link[l:found_file_short] = l:current_file
+    endfor
+
+    " Now that the previous file is setup, deal with the results:
+    "     - If there is only 1 result, open it.
+    "       - There is a config option to skip this and only populate the
+    "       location list instead.
+    "     - If there is more than 1, put them in the location list and open the
+    "     list.
+    "       - There is a config option to also open a file in the current
+    "       buffer here too.
+    "     - If nothing was found, report it and stop.
+    if len(l:found_fhicl) > 0
+
+        call setloclist(0, map(l:found_fhicl, '{"filename": v:val}'))
+        lopen
+
+    elseif len(l:found_fhicl) == 0
+
+        call EchoWarning("No matches found...")
+        return
+
+    endif
+
+endfunction
+
 " Helper function to echo a warning
 " Using echoerr is too much for not an error.
 " Using just echo isn't that visible.
