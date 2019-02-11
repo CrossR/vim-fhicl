@@ -200,8 +200,14 @@ function! fhicl#base#Find_FHICL_Includes() abort
         " This is to match the functionality of find_fhicl.sh by default.
         " Also checks that the current folder hasn't already been checked,
         " since it can appear multiple times.
-        if path == "." && g:vim_fhicl#search_current == 0 && l:not_checked_current == 0
+        if path == "." && g:vim_fhicl#search_current == 0
             continue
+        elseif path == "." && g:vim_fhicl#search_current == 1
+            if l:not_checked_current == 1
+                continue
+            else
+                let l:not_checked_current = 1
+            endif
         endif
 
         " Actually do the search using the user defined tool (usually grep,
