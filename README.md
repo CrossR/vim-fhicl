@@ -6,14 +6,15 @@ Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in
     * Highlight keywords like `physics`, `analyzers` to flag up typos.
     * Properly colour `#include` statements, comments and numbers.
  * Helper for moving around included `fcl` files.
-     * Defaults to `<Leader>-f` to follow an include, and `Backspace` to return to the previous file.
+     * Defaults to `<Leader>-ff` to follow an include, and `Backspace` to return to the previous file.
      * Multiple results are sent to the Location List, where they can be selected with `Enter` to open them.
  * Helper for finding all `fcl` files that `#include ""` the current one.
      * Populates the Vim Location List with all the results.
-     * Default to `<Leader>-i`. Then `Enter` to select a file in the Location
+     * Default to `<Leader>-fi`. Then `Enter` to select a file in the Location
      * List, and `Backspace` to return to the previous file.
      * Uses `grep` by default, but can be changed to any other command.
  * Helper for finding all `fcl` files in the current path.
+     * Defaults to `<Leader>-fs`.
      * Results are pasted into the location list, or piped into `FZF` if available.
         * `fzf`: https://github.com/junegunn/fzf.vim
  * Update the `commentstring` variable for `.fcl` files, so commenting plugins work.
@@ -77,21 +78,32 @@ let g:vim_fhicl#dont_open_file = 0
 " To use ripgrep, instead use "rg --files".
 let g:vim_fhicl#search_command = "grep -lr"
 
+" The command used to find files.
+" If replaced, the command should be passed with any flags needed for
+" recursive running, as well as only returning files.
+" Defaults to using "find", and due to the command setup, only find
+" replacements will work easily. Code could be updated to instead take a full
+" command, not just an executable.
+let g:vim_fhicl#find_command = "find"
 ```
 
 ### Custom Binds
 
 ```vim
 " Remap the follow function with the following.
-" Replace <leader>-f with the correct bind.
-nmap <leader>-f <Plug>vim-fhiclFindFhiclFile
+" Replace <leader>-ff with the correct bind.
+nmap <leader>-ff <Plug>vim-fhiclFindFhiclFile
 
 " Remap the swap back function with the following.
 " Replace <BS> with the correct bind.
 nmap <BS> <Plug>vim-fhiclSwapToPrevious
 
 " Remap the search include function with the following.
-" Replace <leader>-i with the correct bind.
-nmap <leader>-i <Plug>vim-fhiclFindIncludes
+" Replace <leader>-fi with the correct bind.
+nmap <leader>-fi <Plug>vim-fhiclFindIncludes
+
+" Remap the search through all file names with the following.
+" Replace <leader>-fi with the correct bind.
+nmap <leader>-fi <Plug>vim-fhiclFindAll
 
 ```
