@@ -28,32 +28,9 @@ nnoremap <silent><buffer> <Plug>vim-fhiclFindAll :
             \<C-U>call fhicl#base#Find_All_FHICL()<CR>
 
 " <leader>fs -> `F`hicl `S`earch
-" if exists("g:fzf#vim#buffers") == 1
-
-"     command! -bang -nargs=* FhiclLines
-"                 \ call fzf#run(
-"                 \ {
-"                 \ 'source': 'bash /home/lar/rcross/tools/scripts/util_scripts/search_all_fhicl.sh',
-"                 \ 'options': '--delimiter "/" --with-nth 8.. --preview-window=hidden --bind "?:toggle-preview" --preview "echo {} | cut -f1 -d : | xargs -I{£} head -100 {£}"',
-"                 \ 'down': '20%'
-"                 \ }
-"                 \ )
-
-"     " if !hasmapto(':FLines')
-"     if !hasmapto('<Plug>vim-fhiclSearchAll')
-"         " nnoremap <leader>fs :FhiclLines<cr>
-"         nnoremap <leader>fs <Plug>vim-fhiclSearchAll
-"     endif
-"     " nnoremap <silent><buffer> <Plug>vim-fhiclSearchAll :FhiclLines<CR>
-"     nnoremap <silent><buffer> <Plug>vim-fhiclSearchAll :
-"                 \<C-U>call fhicl#base#Search_All_FHICL()<CR>
-
-" endif
-
 if !hasmapto('<Plug>vim-fhiclSearchAll')
     nmap <leader>fs <Plug>vim-fhiclSearchAll
 endif
-
 nnoremap <silent><buffer> <Plug>vim-fhiclSearchAll :
                 \<C-U>call fhicl#base#Search_All_FHICL()<CR>
 
