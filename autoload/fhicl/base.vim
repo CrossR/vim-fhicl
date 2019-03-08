@@ -314,7 +314,7 @@ function! fhicl#base#Search_All_FHICL() abort
                     \ {
                     \ 'source': l:grep_command,
                     \ 'options': '-d "/" --with-nth 8..',
-                    \ 'sink': 'e',
+                    \ 'sink': function('fhicl#base#OpenFzfFile'),
                     \ 'down': '40%'
                     \ }))
 
@@ -326,6 +326,12 @@ function! fhicl#base#Search_All_FHICL() abort
         return
     endif
 
+endfunction
+
+function! fhicl#base#OpenFzfFile(line) abort
+    let l:file_path = split(a:line, ':')[0]
+    call EchoWarning(l:file_path)
+    execute 'silent e' . l:file_path
 endfunction
 
 " Helper function to populate the global variables that are used to move
