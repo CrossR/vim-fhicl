@@ -14,8 +14,12 @@ Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in
      * List, and `Backspace` to return to the previous file.
      * Uses `grep` by default, but can be changed to any other command.
  * Helper for finding all `fcl` files in the current path.
-     * Defaults to `<Leader>-fs`.
+     * Defaults to `<Leader>-fa`.
      * Results are pasted into the location list, or piped into `FZF` if available.
+        * `fzf`: https://github.com/junegunn/fzf.vim
+ * Helper for search content of all `fcl` files in the current path.
+     * Defaults to `<Leader>-fs`.
+     * Results are piped into `FZF`, and the plugin requires this (only if this function is used).
         * `fzf`: https://github.com/junegunn/fzf.vim
  * Update the `commentstring` variable for `.fcl` files, so commenting plugins work.
  * Sets the `JSON` indentation rules for the `.fcl` files, to give more intelligent auto indentation.
@@ -73,9 +77,8 @@ let g:vim_fhicl#dont_open_file = 0
 " The command used to search for files that include the current one.
 " If replaced, the command should be passed with any flags needed for
 " recursive running, as well as only returning files.
-" Defaults to using "grep -lr", where "l" returns just files and "r" makes
-" grep recursive.
-" To use ripgrep, instead use "rg --files".
+" Defaults to using "grep -r".
+" To use ripgrep, instead use "rg --type-add 'fcl:*.fcl' -tfcl".
 let g:vim_fhicl#search_command = "grep -lr"
 
 " The command used to find files.
@@ -92,6 +95,7 @@ let g:vim_fhicl#find_command = "find"
 ```vim
 " Remap the follow function with the following.
 " Replace <leader>-ff with the correct bind.
+" ff -> Follow Fhicl
 nmap <leader>-ff <Plug>vim-fhiclFindFhiclFile
 
 " Remap the swap back function with the following.
@@ -100,10 +104,16 @@ nmap <BS> <Plug>vim-fhiclSwapToPrevious
 
 " Remap the search include function with the following.
 " Replace <leader>-fi with the correct bind.
+" fi -> Fhicl Include / Find Include
 nmap <leader>-fi <Plug>vim-fhiclFindIncludes
 
 " Remap the search through all file names with the following.
-" Replace <leader>-fi with the correct bind.
-nmap <leader>-fi <Plug>vim-fhiclFindAll
+" Replace <leader>-fa with the correct bind.
+" fa -> Find all / Fhicl All
+nmap <leader>-fa <Plug>vim-fhiclFindAll
 
+" Remap the search through all files.
+" Replace <leader>-fs with the correct bind.
+" fs -> Fhicl Search
+nmap <leader>-fs <Plug>vim-fhiclSearchAll
 ```

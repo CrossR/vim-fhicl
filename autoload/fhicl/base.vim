@@ -4,7 +4,7 @@ let g:vim_fhicl#search_current = get(g:, 'vim_fhicl#search_current', 0)
 let g:vim_fhicl#search_setting = get(g:, 'vim_fhicl#search_setting', "all")
 let g:vim_fhicl#always_open_first = get(g:, 'vim_fhicl#always_open_first', 0)
 let g:vim_fhicl#dont_open_file = get(g:, 'vim_fhicl#dont_open_file', 0)
-let g:vim_fhicl#search_command = get(g:, 'vim_fhicl#search_command', "grep -rl")
+let g:vim_fhicl#search_command = get(g:, 'vim_fhicl#search_command', "grep -r")
 let g:vim_fhicl#find_command = get(g:, 'vim_fhicl#find_command', "find")
 
 let s:fhicl_include = '#include \?"\([a-zA-Z0-9/._]\+\)"'
@@ -185,7 +185,7 @@ function! fhicl#base#Find_FHICL_Includes() abort
         " Actually do the search using the user defined tool (usually grep,
         " though ripgrep is faster).
         " If there is any results, add them to the ongoing list.
-        let l:result = systemlist(g:vim_fhicl#search_command . " '" . l:search_term . "' " . path)
+        let l:result = systemlist(g:vim_fhicl#search_command . " -l '" . l:search_term . "' " . path)
 
         if len(l:result) > 0
             let l:found_includes = l:found_includes + l:result
@@ -197,7 +197,13 @@ function! fhicl#base#Find_FHICL_Includes() abort
     " Now that the file movement is setup, deal with the results:
     "     - If there is any results, populate the location list with them.
     "     - If nothing was found, report it and stop.
-    if len(l:found_includes) > 0
+    if len(l:found_includes) > 0 && exists("g:fzf#vim#buffers") == 1
+        call fzf#run(fzf#wrap({'source': l:found_includes,
+                    \ 'options': '-d "/" --with-nth="-1" --preview "head -100 {}" ' .
+                    \ '--preview-window=hidden --bind "?:toggle-preview"',
+                    \ 'down': '40%'
+                    \ }))
+    elseif len(l:found_includes) > 0 && exists("g:fzf#vim#buffers") == 0
         call setloclist(0, map(l:found_includes, '{"filename": v:val}'))
         lopen
     elseif len(l:found_includes) == 0
@@ -250,8 +256,12 @@ function! fhicl#base#Find_All_FHICL() abort
     "     - If there is any results, populate the location list with them.
     "     - If nothing was found, report it and stop.
     if len(l:found_fhicl) > 0 && exists("g:fzf#vim#buffers") == 1
-        call fzf#run(fzf#wrap({'source': l:found_fhicl, 
-                    \ 'options': '-d "/" --with-nth="-1" --preview "head -100 {}"'}))
+        call fzf#run(fzf#wrap({
+                    \ 'source': l:found_fhicl,
+                    \ 'options': '-d "/" --with-nth="-1" --preview "head -100 {}" ' .
+                    \ '--preview-window=hidden --bind "?:toggle-preview"',
+                    \ 'down': '40%'
+                    \ }))
     elseif len(l:found_fhicl) > 0 && exists("g:fzf#vim#buffers") == 0
         call setloclist(0, map(l:found_fhicl, '{"filename": v:val}'))
         lopen
@@ -260,6 +270,68 @@ function! fhicl#base#Find_All_FHICL() abort
         return
     endif
 
+endfunction
+
+" Function to search all FHICL files that are in the FHICL_FILE_PATH.
+function! fhicl#base#Search_All_FHICL() abort
+
+    " If the env var isn't set, stop.
+    if empty($FHICL_FILE_PATH)
+        call EchoWarning("$FHICL_FILE_PATH isn't set!")
+        return
+    endif
+
+    let l:search_paths = fhicl#base#Get_Search_Paths()
+
+    let l:fhicl_files = []
+
+    " Search for the file in other include paths
+    for path in l:search_paths
+
+        " If the folder doesn't exist, don't bother searching there.
+        if !isdirectory(path)
+            continue
+        endif
+
+        " Skip checking the current working directory, since if needed it will
+        " have already been added.
+        if path == "."
+            continue
+        endif
+
+        let l:fhicl_files = l:fhicl_files + [path]
+
+    endfor
+
+    " Now that the file paths have been made, deal with the results:
+    "     - If there is any results, do a search with them.
+    "     - If nothing was found, report it and stop.
+    if len(l:fhicl_files) > 0 && exists("g:fzf#vim#buffers") == 1
+
+        let l:grep_command = g:vim_fhicl#search_command . ' -v "^$" ' . join(l:fhicl_files, ' ')
+
+        call fzf#run(fzf#wrap(
+                    \ {
+                    \ 'source': l:grep_command,
+                    \ 'options': '-d "/" --with-nth 8..',
+                    \ 'sink': function('fhicl#base#OpenFzfFile'),
+                    \ 'down': '40%'
+                    \ }))
+
+    elseif len(l:fhicl_files) > 0 && exists("g:fzf#vim#buffers") == 0
+        call EchoWarning("FZF.vim is needed for this function, to filter the results...")
+        return
+    elseif len(l:fhicl_files) == 0
+        call EchoWarning("No matches found...")
+        return
+    endif
+
+endfunction
+
+function! fhicl#base#OpenFzfFile(line) abort
+    let l:file_path = split(a:line, ':')[0]
+    call EchoWarning(l:file_path)
+    execute 'silent e' . l:file_path
 endfunction
 
 " Helper function to populate the global variables that are used to move
@@ -300,9 +372,12 @@ function! fhicl#base#Get_Search_Paths() abort
         let l:search_paths = [$MRB_SOURCE] + l:search_paths
     endif
 
-    " If we should search the current directory, add it.
+    " If we should search the current directory, add it, as long as
+    " it isn't the home folder since that will get very slow.
     if (g:vim_fhicl#search_current == 1)
-        let l:search_paths = [l:current_abs_path] + l:search_paths
+        if (l:current_abs_path != $HOME)
+            let l:search_paths = [l:current_abs_path] + l:search_paths
+        endif
     endif
 
     " Remove any duplicates
