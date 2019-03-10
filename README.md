@@ -5,22 +5,12 @@ Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in
  * Adds basic syntax highlighting to `.fcl` files.
     * Highlight keywords like `physics`, `analyzers` to flag up typos.
     * Properly colour `#include` statements, comments and numbers.
- * Helper for moving around included `fcl` files.
-     * Defaults to `<Leader>-ff` to follow an include, and `Backspace` to return to the previous file.
-     * Multiple results are sent to the Location List, where they can be selected with `Enter` to open them.
- * Helper for finding all `fcl` files that `#include ""` the current one.
-     * Populates the Vim Location List with all the results.
-     * Default to `<Leader>-fi`. Then `Enter` to select a file in the Location
-     * List, and `Backspace` to return to the previous file.
-     * Uses `grep` by default, but can be changed to any other command.
- * Helper for finding all `fcl` files in the current path.
-     * Defaults to `<Leader>-fa`.
-     * Results are pasted into the location list, or piped into `FZF` if available.
-        * `fzf`: https://github.com/junegunn/fzf.vim
- * Helper for search content of all `fcl` files in the current path.
-     * Defaults to `<Leader>-fs`.
-     * Results are piped into `FZF`, and the plugin requires this (only if this function is used).
-        * `fzf`: https://github.com/junegunn/fzf.vim
+ * Helper functions, with the default keybind:
+    * Follow `#include` statement to `fcl` file → `<Leader>-ff`.
+    * Find all files that include the current one  → `<Leader>-fi`.
+    * List all `fcl` files in `FHICL_FILE_PATH` → `<Leader>-fa`.
+    * Search contents of all `fcl` files → `<Leader>-fs`.
+      * Search function requires `fzf`, https://github.com/junegunn/fzf.vim
  * Update the `commentstring` variable for `.fcl` files, so commenting plugins work.
  * Sets the `JSON` indentation rules for the `.fcl` files, to give more intelligent auto indentation.
     * **TODO:** Check and update this logic to make sure it works nicely for all files, and all styles of line.
@@ -30,14 +20,21 @@ Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in
 Once installed, syntax highlighting should be applied automatically for all
 `.fcl` files.
 
-Pressing `<leader>-f` on any `#include` statement (`leader`
-defaults to `\`, such that `\` then `f` calls the function) will search for and
+Pressing `<leader>-ff` on any `#include` statement (`leader`
+defaults to `\`, such that `\` then `ff` calls the function) will search for and
 then open the corresponding `fcl` file. If multiple results are found, the
 Location List will be populated, which can be navigated like normal and a selected
 file opened with `Enter`.
 
-Once finished with a file, pressing `Backspace` will
-navigate back to the parent file.
+Once finished with a file, pressing `Backspace` will navigate back to the parent file.
+
+Similarly, `<leader>-fi` will search for all files that `#include` the current `fcl` file.
+The results will be populated into a Location List, or an FZF search if installed.
+
+`<leader>-fa` will populate the location list (or FZF) with every `fcl` file that can be found.
+
+`<leader>-fs` will populate FZF with the content of every `fcl` file, such that they can all
+be searched through.
 
 ### Installation
 
