@@ -2,6 +2,13 @@
 
 Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in Vim + Neovim.
 
+The demo below shows the opening of various fhicl files over CVMFS, syntax highlights, and 
+[FZF](https://github.com/junegunn/fzf.vim) powered search.
+
+https://user-images.githubusercontent.com/10038688/135842553-3f030d64-31be-4964-b9da-7df5dffbda34.mov
+
+### Features
+
  * Adds basic syntax highlighting to `.fcl` files.
     * Highlight keywords like `physics`, `analyzers` to flag up typos.
     * Properly colour `#include` statements, comments and numbers.
@@ -10,7 +17,7 @@ Helpers for [FHICL](https://cdcvs.fnal.gov/redmine/projects/fhicl/wiki) Files in
     * Find all files that include the current one  → `<Leader>-fi`.
     * List all `fcl` files in `FHICL_FILE_PATH` → `<Leader>-fa`.
     * Search contents of all `fcl` files → `<Leader>-fs`.
-      * Search function requires `fzf`, https://github.com/junegunn/fzf.vim
+      * Search and list function requires `fzf`, https://github.com/junegunn/fzf.vim
  * Update the `commentstring` variable for `.fcl` files, so commenting plugins work.
  * Sets the `JSON` indentation rules for the `.fcl` files, to give more intelligent auto indentation.
     * **TODO:** Check and update this logic to make sure it works nicely for all files, and all styles of line.
